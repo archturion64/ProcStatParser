@@ -11,7 +11,10 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-
+/**
+ * Retrieves the current CPU load on a Linux based system by reading /proc/stat.
+ * No dependencies required besides JRE and the Linux kernel.
+ */
 public class ProcStatParser {
 
     private static long[][] parseProcStat() throws NumberFormatException, IOException, SecurityException {
@@ -55,7 +58,7 @@ public class ProcStatParser {
      * sleeps for 1 second and parses it again. Than calculates the CPU load in percent
      * using the passed Idle vs Load times.
      * @return a list containing the total CPU load in percent (as a first element)
-     * followed by the separate individual CPU core loads (es subsequent List elements).
+     * followed by the separate individual CPU core loads (as subsequent List elements).
      */
     public static List<Short> ReadCpuLoad() {
 
