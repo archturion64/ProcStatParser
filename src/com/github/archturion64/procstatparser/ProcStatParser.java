@@ -14,6 +14,24 @@ import java.util.stream.Stream;
 /**
  * Retrieves the current CPU load on a Linux based system by reading /proc/stat.
  * No dependencies required besides JRE and the Linux kernel.
+ *
+ * This class uses the https://www.idnt.net/en-US/kb/941772 parsing approach.
+ *
+ * An example for a /proc/stat output which is to be parsed:
+ *
+ * cpu  85280 100 17875 1565564 1138 0 242 0 0 0
+ * cpu0 22526 33 4667 389829 183 0 48 0 0 0
+ * cpu1 21741 18 3971 391716 323 0 133 0 0 0
+ * cpu2 19902 17 4160 393243 228 0 16 0 0 0
+ * cpu3 21109 31 5076 390774 403 0 44 0 0 0
+ * intr 2287490 6 11 0 0 0 0 0 0 1 465 0 0 355019 0 0 0 321 0 0 668 0 0 0 31 0 0 0 0 0 78245 77613 19 140945 551 0 0 ...
+ * ctxt 5484946
+ * btime 1609569892
+ * processes 11151
+ * procs_running 1
+ * procs_blocked 0
+ * softirq 2394697 108 882289 177 1484 75406 0 1137 816499 534 617063
+ *
  */
 public class ProcStatParser {
 
