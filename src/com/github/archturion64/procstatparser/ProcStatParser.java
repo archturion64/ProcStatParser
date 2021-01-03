@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -100,5 +103,14 @@ public class ProcStatParser {
             System.out.println("Sleep interrupt detected: " + ie.toString());
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * Call ReadCpuLoad non-blocking;
+     * @return a list containing the total CPU load in percent (as a first element)
+     * followed by the separate individual CPU core loads (as subsequent List elements).
+     */
+    public static Future<List<Short>> ReadCpuLoadAsync() {
+        return CompletableFuture.supplyAsync( () -> ReadCpuLoad()).orTimeout(3, TimeUnit.SECONDS);
     }
 }

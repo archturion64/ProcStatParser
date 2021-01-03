@@ -9,6 +9,8 @@ public class Main {
 
     public static void main(String[] args) {
         System.out.println(ProcStatParser.ReadCpuLoad());
+	// or
+	System.out.println(ProcStatParser.ReadCpuLoadAsync().get());
     }
 }
 ```
@@ -19,7 +21,7 @@ To add dependancy in maven:
         <dependency>
             <groupId>com.github.archturion64</groupId>
             <artifactId>ProcStatParser</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
     </dependencies>
 ...
