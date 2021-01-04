@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Flow;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -37,6 +38,10 @@ import java.util.stream.Stream;
  *
  */
 public class ProcStatParser {
+
+    private static final int PROBING_INTERVAL_MS = 1000;
+    private static final int PROBE_MAX_SIZE = 2;
+    private static Stack<List<CpuLoad>> probeResults = new Stack<>();
 
     private static long[][] parseProcStat() throws NumberFormatException, IOException, SecurityException {
         try (Stream<String> lines = Files.lines(Path.of("/proc/stat"))) {
@@ -81,11 +86,11 @@ public class ProcStatParser {
      * @return a list containing the total CPU load in percent (as a first element)
      * followed by the separate individual CPU core loads (as subsequent List elements).
      */
-    public static List<Short> ReadCpuLoad() {
+    public static List<Short> readCpuLoad() {
 
         try {
             List <CpuLoad> initialUsage = calcUsageIdlePairs(parseProcStat());
-            Thread.sleep(1000);
+            Thread.sleep(PROBING_INTERVAL_MS);
             List <CpuLoad> currentUsage = calcUsageIdlePairs(parseProcStat());
 
             return calcCpuLoad(initialUsage, currentUsage);
@@ -110,7 +115,19 @@ public class ProcStatParser {
      * @return a list containing the total CPU load in percent (as a first element)
      * followed by the separate individual CPU core loads (as subsequent List elements).
      */
-    public static Future<List<Short>> ReadCpuLoadAsync() {
-        return CompletableFuture.supplyAsync( () -> ReadCpuLoad()).orTimeout(3, TimeUnit.SECONDS);
+    public static Future<List<Short>> readCpuLoadAsync() {
+        return CompletableFuture.supplyAsync(ProcStatParser::readCpuLoad)
+                .orTimeout(PROBING_INTERVAL_MS * 3, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Subscribe for CPU load changes
+     * @return a Publisher des sends CPU load changes
+     */
+    public static Flow.Publisher<List<Short>> monitorCpuLoad()
+    {
+        return subscriber -> subscriber.onSubscribe(
+                new CpuLoadSubscription(subscriber)
+        );
     }
 }
