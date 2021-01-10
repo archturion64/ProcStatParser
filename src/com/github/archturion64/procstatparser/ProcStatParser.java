@@ -39,9 +39,8 @@ import java.util.stream.Stream;
  */
 public class ProcStatParser {
 
-    private static final int PROBING_INTERVAL_MS = 1000;
-    private static final int PROBE_MAX_SIZE = 2;
-    private static Stack<List<CpuLoad>> probeResults = new Stack<>();
+    private static final int PROBING_INTERVAL_S = 1;
+    private static final int ASYNC_TIMEOUT_FACTOR = 3;
 
     private static long[][] parseProcStat() throws NumberFormatException, IOException, SecurityException {
         try (Stream<String> lines = Files.lines(Path.of("/proc/stat"))) {
@@ -90,7 +89,7 @@ public class ProcStatParser {
 
         try {
             List <CpuLoad> initialUsage = calcUsageIdlePairs(parseProcStat());
-            Thread.sleep(PROBING_INTERVAL_MS);
+            TimeUnit.SECONDS.sleep(PROBING_INTERVAL_S);
             List <CpuLoad> currentUsage = calcUsageIdlePairs(parseProcStat());
 
             return calcCpuLoad(initialUsage, currentUsage);
@@ -102,7 +101,7 @@ public class ProcStatParser {
             System.out.println("Permissions error: " + se.toString());
         } catch (IndexOutOfBoundsException oob) {
             System.out.println("Read data does not make sense: " + oob.toString());
-        }catch (ArithmeticException ae) {
+        } catch (ArithmeticException ae) {
             System.out.println("File contents did not change between measurements: " + ae.toString());
         } catch (InterruptedException ie) {
             System.out.println("Sleep interrupt detected: " + ie.toString());
@@ -117,7 +116,7 @@ public class ProcStatParser {
      */
     public static Future<List<Short>> readCpuLoadAsync() {
         return CompletableFuture.supplyAsync(ProcStatParser::readCpuLoad)
-                .orTimeout(PROBING_INTERVAL_MS * 3, TimeUnit.MILLISECONDS);
+                .orTimeout(PROBING_INTERVAL_S * ASYNC_TIMEOUT_FACTOR, TimeUnit.SECONDS);
     }
 
     /**
